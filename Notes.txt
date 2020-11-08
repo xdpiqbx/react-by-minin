@@ -1,0 +1,1702 @@
+01-03 немного про компоненты (посоздавали машинки)
+продолжаю обзор всего что установилось в 01-04
+01-05
+    - глобально установил 
+        sudo npm install -g create-react-app
+    - создал проект
+        create-react-app project-name
+    - просто рассакзал про структуру папок
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-2-syntax
+--------------------------------------------------------
+Как работает React
+Везде где использую JSX синтаксис - импортировать React
+    import React from 'react'
+
+class App extends Component{
+  render(){
+    return (
+      <div className="App">
+        <h2>Hi React here</h2>
+      </div>
+    );
+    
+    // Под капотом происходит это
+
+    // return React.createElement(
+    //   'div',
+    //   {
+    //     className: "App"
+    //   }, // тут параметры (атрибуты, то что пойдёт в пропсы)
+    //   React.createElement(
+    //     "h1",
+    //     null,
+    //     'Hello Ract'
+    //   ),
+    // )
+  }
+}
+--------------------------------------------------------
+Ограничения
+в JSX className вместо class
+в JSX всегда возвращаем 1 корневой елемент !!!
+Всегда когда используем JSX не забываем -> import React from 'react'
+Блочные конструкции if, for и т.п. - заппрещены в JSX
+--------------------------------------------------------
+Inline стили в реакт компонентах - объекты
+
+  render(){
+    const divStyle = {
+      'textAlign': 'center',
+      'backgroundColor': 'teal'
+    }
+    return (
+      <div className="App" style={divStyle}>
+        <h2 style={{color: "#CCCCCC", fontSize: '25px'}}>Hi React here</h2>
+      </div>
+    );
+  }
+--------------------------------------------------------
+Создание простого компонента
+По нормальному под каждый компонент создаётся папка
+Есть два способа создания компонентов:
+Через функцию и через класс
+
+Ниже пример через функцию (функциональный компонент)
+import React from 'react'
+
+// function Car () {
+//     return (
+//         <h2>This is car component</h2>
+//     )
+// }
+
+//ES 6 синтаксис
+//const Car = () => <h2>This is car component</h2> 
+
+//Если в несколько строк то нужны ( )
+// const Car = () => (
+//     <h2>
+//         This is car component
+//         <strong> TEST</strong>
+//     </h2>
+// ) 
+//export default Car
+
+//Или просто
+export default () => (
+        <h2>
+            This is car component
+            <strong> TEST</strong>
+        </h2>
+)
+--------------------------------------------------------
+Вывод динамических данных
+В JSX динамические данные вставлять в { ... }
+Короче в { ... } можно писать полноценный JS (вызываать ф-ции и т.п.)
+<strong> {1 + 1} </strong>
+<strong> { Math.round(Math.random() * 100) } </strong>
+--------------------------------------------------------
+Передача параметров
+Вызов компонента Car с параметрами
+name={"Ford"} если передавать строку то можно просто name="Ford"
+<Car name={"Ford"} year={"2018"} />
+--------------------------------------------------------
+Передача контента
+Чтоб это заработало:
+<Car name="Audi" year={"2020"}>
+    <p>COLOR</p>
+</Car>
+Нужно в компонент передать {props.children}
+И можно будет городить:
+        <Car name="Audi" year={"2020"}>
+            <p>BEFORE In component</p>
+            <div>
+              <Car name={'Audi 01'} year={"2010"} />
+            </div>
+            <p>AFTER In component</p>
+        </Car>
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-3-basics-React
+--------------------------------------------------------
+Создание state
+state - это объект который описывает состояние в котором находится компонент
+Пока я вижу это как объект в котором лежат все данные для вывода
+
+class App extends Component{
+  
+  state = {
+    cars:[
+      {name: "Ford", year: 2018},
+      {name: "Audi", year: 2016},
+      {name: "Mazda 8", year: 2010}
+    ],
+    pageTitle: "React Components"
+  }
+
+  render(){
+      ...
+    const cars = this.state.cars
+    return (
+      <div className="App" style={divStyle}>
+        <h2>{this.state.pageTitle}</h2>
+        <Car name={cars[0].name} year={cars[0].year} />
+      </div>
+    );
+  }
+}
+--------------------------------------------------------
+Добавлене событий
+https://reactjs.org/docs/events.html#supported-events
+
+Пример навешивания события
+Колбек changeTitleAction был создан до рендера
+<button onClick={this.changeTitleAction}>Change title</button>
+--------------------------------------------------------
+Изменение state
+На прямую изменить нельзя, должна перерендерится страница!
+
+Поэтому через this.setState({...})
+
+changeTitleAction = () => {
+  this.setState({
+    pageTitle: "Components"
+  })
+}
+--------------------------------------------------------
+Передача параметров в функцию
+В компоненте:
+export default props => (
+    <div>
+        <h2>Car name: {props.name}</h2>
+        <p>Year: <strong>{props.year}</strong></p>
+        <button onClick={props.onChangeTitle}>Click</button>
+    </div>
+)
+
+Придумал обработчик onChangeTitle
+
+Первый способ через - bind
+Этот способ более правильный, так как занимает меньше ресурсов браузера
+  <Car 
+    name={cars[0].name}
+    year={cars[0].year}
+    onChangeTitle={ this.changeTitleAction.bind(this, cars[0].name) }
+  />
+
+Второй способ через - стрелочную функцию
+  <Car
+    name={cars[1].name}
+    year={cars[1].year}
+    onChangeTitle={ () => this.changeTitleAction(cars[1].name) }
+  />
+--------------------------------------------------------
+Обработка input
+Через event.target.value по событию onChange
+
+handleInput = (event) => {
+  this.setState({
+    pageTitle: event.target.value
+  })
+}
+
+Например рендере есть инпут
+  <input type="text" onChange={this.handleInput}/>
+--------------------------------------------------------
+Работа со списком
+когда обрабатываеш однотипные компоненты в цикле, обязательно нужен key (уникальное значение для реакта)
+И да в JSX в { ... } можно писать любой валидный JS код
+  { 
+     this.state.cars.map((car, index)=>{
+      return (
+        <Car
+          key = {index} // ---- Без этого будет WARNING !
+          name={car.name}
+          year={car.year}
+          onChangeTitle={this.changeTitleAction.bind(this, car.name)}
+        />
+      )
+    })
+  }
+--------------------------------------------------------
+Работа с условными операторами
+Либо через тернарный оператор
+        { 
+          this.state.showCars ?  
+            this.state.cars.map((car, index)=>{
+              return (
+                <Car
+                  key = {index}
+                  name={car.name}
+                  year={car.year}
+                  onChangeTitle={this.changeTitleAction.bind(this, car.name)}
+                />
+              )
+            })
+            : null
+        }
+
+Либо вынести JSX в JS (повыше return) и по условию записать в переменную
+    
+    let cars = null
+    if(this.state.showCars){
+      cars = this.state.cars.map((car, index)=>{
+        return (
+          <Car
+            key = {index}
+            name={car.name}
+            year={car.year}
+            onChangeTitle={this.changeTitleAction.bind(this, car.name)}
+          />
+        )
+      })
+    }
+    return ( <...> { cars } <...> );
+--------------------------------------------------------
+Динамические списки
+У обычных функций есть собственный контекст
+
+  onChangeName(name, index){
+    const car = this.state.cars[index]
+    car.name = name
+    const cars = [...this.state.cars]
+    cars[index] = car
+    this.setState({
+      cars: cars
+    })
+  }
+
+  <Car
+    key = {index}
+    name={car.name}
+    year={car.year}
+    onChangeName = { (event) => this.onChangeName(event.target.value, index) }
+  />
+
+  <input type='text' onChange={props.onChangeName} value={props.name}/>
+
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
+deleteHandler(index){
+  const cars = [...this.state.cars]
+  cars.splice(index, 1)
+  this.setState({ cars })
+}
+
+<Car
+  key = {index}
+  name={car.name}
+  year={car.year}
+  onDelete = { this.deleteHandler.bind(this, index) }
+  onChangeName = { (event) => this.onChangeName(event.target.value, index) }
+/>
+
+<button onClick={props.onDelete}>Delete</button>
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-4-components-styles
+--------------------------------------------------------
+Inline стили
+записывать в style = {{ ... }} - тут брать два раза в фигурные
+Имена свойств в Camel case 
+
+<div style={{
+        border: '1px solid #cccccc',
+        marginBottom: '10px',
+        padding: 10,
+        boxShadow: '0 4px 5px 0 rgba(0, 0, 0, .14)',
+        borderRadius: 5
+}}> ... </div>
+
+или передать объект в style = { ... }  - тут брать один раз в фигурные
+const divStyle = {
+        'textAlign': 'center'
+      }
+<div className="App" style={divStyle}>
+--------------------------------------------------------
+Подключение CSS
+Как правило css лежит в одной папке с компонентом
+Обязательно импортировать в файл с компонентом - import './Car.css'
+И не забывать про className <div className="Car">...
+--------------------------------------------------------
+Динамические классы
+в компоненте создать массив например const inputClasses = ['input']
+и в зависимости от условия пушить в него новые имена класов
+а в JSX в нужном месте join - className={inputClasses.join(" ")}
+--------------------------------------------------------
+Radium (немного вернёмся к инлайн стилям)
+вынес часть стилей в компонет в виде объекта
+    const style = {
+        border: '1px solid #cccccc',
+        boxShadow: '0 4px 5px 0 rgba(0, 0, 0, .14)'
+    }
+Вопрос в том как задать псевдоселекторы внутри JS
+>>>
+https://github.com/FormidableLabs/radium
+npm install --save radium
+import Radium from 'radium'
+Компонент загоняем в константу const Car = props => { ... }
+И експортирую обёрнутый в радиум компонент export default Radium(Car)
+Теперь можно использовать псевдоселекторы
+    const style = {
+        border: '1px solid #cccccc',
+        boxShadow: '0 4px 5px 0 rgba(0, 0, 0, .14)',
+        ':hover': {
+            border: '1px solid #aaaaaa',
+            boxShadow: '0 4px 15px 0 rgba(0, 0, 0, .25)',
+        }
+    }
+--------------------------------------------------------
+Препроцессоры (SASS / SCSS)
+npm install node-sass --save
+Потом просто переименовать нужные файлы в .scss и поправить импорты
+
+-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/
+Error: Node Sass version 5.0.0 is incompatible with ^4.0.0
+yarn remove node-sass
+yarn add node-sass@4.14.1
+-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/
+
+--------------------------------------------------------
+CSS (SCSS) модули
+к имени css или scss добавить module выйдет - Car.module.scss
+импортировать - import classes from './Car.module.scss'
+classes это объект с хешироваными именами классов (так они точно не повторяются)
+classes = {
+  Car: "Car_Car__1ULS6"
+  bold: "Car_bold__P2waQ"
+  green: "Car_green__1inQs"
+  input: "Car_input__2fFl1"
+  red: "Car_red__1haAn"
+}
+<div className={ classes.Car } style={style}>...
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-5-react-components (Компоненты React)
+--------------------------------------------------------
+Передача параметров в компонент
+Передача параметра - <App title={'I am from props'}/>
+Вывод в компоненте - <h1>{this.props.title}</h1>
+--------------------------------------------------------
+Инициализация State (через конструктор класса)
+class App extends Component{
+  constructor(props){
+    super(props)
+    this.state = {
+    ...
+  }
+}
+--------------------------------------------------------
+Базовый жизненный цикл
+  Жизненные циклы доступны компонентам которые наследуются от базового класа
+  Инициализация реакт компонента, подготовка всех параметров и проект готов зарендерится
+  К этому методу лучше не обращатся
+  
+  componentWillMount(){ // has been renamed !!!
+    console.log('App -> component Will Mount()');
+  }
+
+  Сам рендер из JSX в HTML
+  render(){
+    console.log('App -> component Did Mount()');
+    ....
+  }
+
+  HTML готов
+  componentDidMount(){
+    console.log('App -> component Did Mount()');
+  }
+--------------------------------------------------------
+30. Создание Stateful компонента
+class Car extends React.Component{
+	//обязательно метод 
+	render{
+	}
+}
+Лучше когда 1 классовый компонент включает в себя все функциональные.
+Не надо городить много класовых компонентов
+--------------------------------------------------------
+31. Жизненный цикл изменения
+
+    // Компонент был изменён, предназначен чтоб синхронизировать локальный стейт с вхлдящими свойствами (редко используется в робочем коде)
+    componentWillReceiveProps(nextProps){
+        console.log("Car componentWillReciveProps(nextProps)", nextProps);
+    }
+    
+    // Нужно ли компонент изменять ?
+    // Тут можно оптимизировать приложение если вернуть true то это значит что компонент должен изменится и нужно его перерисовть
+    shouldComponentUpdate(nextProps, nextState){
+        console.log("Car shouldComponentUpdate(nextProps, nextState)", nextProps, nextState);
+        //return true
+        return nextProps.name.trim() !== this.props.name
+    }
+
+    // тут я уже знаю что компонент будет изменён, тут можно синхронизировать локальный стейт
+    componentWillUpdate(nextProps, nextState){ 
+        console.log("Car componentWillUpdate(nextProps, nextState)",nextProps, nextState);
+    }
+    
+    componentDidUpdate(){
+        console.log("Car componentDidUpdate()");
+    }
+	
+	render(){
+		console.log('App -> render');
+	}
+--------------------------------------------------------
+32. Жизненный цикл Удаления
+    // Вызывается когда идёт удаление компонента из дом дерева
+    componentWillUnmount(){
+        console.log("Car componentWillUnmount()");
+    }
+    
+--------------------------------------------------------
+33. Жизненные циклы React 16.3+
+В componentWillUpdate и componentWillReceiveProps можно обратится к this, это может вызвать проблемы поскольку компонент может быть ещё не отрисовался
+Был введён он делает то же самое что и componentWillUpdate но запрещает преобразование state на прямую
+Сначала нужно завести статический метод:
+
+Чтоб синхронизировать локальный state с входящими параметрами
+
+    static getDerivedStateFromProps(nextProps, prevState){
+        console.log('Car getDirivedStateFromProps', nextProps, prevState);
+        // return {
+        // // Этот объект - результирующий стейт компонента
+        // }
+        return prevState // так просто верну исходное состояние
+    }
+
+    // Позвояет получить не изменённое ДОМ дерево до обновления
+    // Вызывается после метода render
+    componentDidUpdate(){
+        console.log("Car componentDidUpdate()");
+    }
+--------------------------------------------------------
+34. ErrorBoundary
+    // Будет вызван если поймёт что вложеный в него компонент отработал с ошибкой
+
+import React from 'react'
+export default class ErrorBoundary extends React.Component{
+    state = {
+        hasError: false
+    }
+    
+    componentDidCatch(error, info){
+        this.setState({hasError: true})
+    }
+
+    render(){
+        // При этом условии не упадёт весь компонент, а на его месте выведется
+        // <h1 style={{color: 'red'}}>Something went wrong</h1>
+        //https://reactjs.org/docs/error-boundaries.html
+        
+        if(this.state.hasError){
+            return <h1 style={{color: 'red'}}>Something went wrong</h1>
+        }
+
+        return this.props.children
+    }
+}
+
+  <ErrorBoundary key = {index}>
+    <Car name={car.name} />
+  </ErrorBoundary>
+--------------------------------------------------------
+35. Фрагменты. Часть 1
+Смысл в том что можно избавится от корневого елемента разметки
+преобразовав в массив (второй return в render)
+
+import React, { Component } from "react";
+
+export default class Counter extends Component{
+    state = {
+        counter: 0
+    }
+
+    addCounter = () => {
+        this.setState({
+            counter: this.state.counter + 1
+        })
+    }
+
+    render(){
+        // return (
+        //     <div>
+        //         <h2>Counter {this.state.counter}</h2>
+        //         <button onClick={this.addCounter}>+</button>
+        //         <button onClick={() => { this.setState({ counter: this.state.counter - 1 }) }}>-</button>
+        //     </div>
+        // )
+        // но так для каждого елемента массива нужен уникальный ключ
+        return [
+            <h2 key={"0"}>Counter {this.state.counter}</h2>,
+            <button key={"1"} onClick={this.addCounter}>+</button>,
+            <button key={"2"} onClick={() => { this.setState({ counter: this.state.counter - 1 }) }}>-</button>
+        ]
+    }
+}
+--------------------------------------------------------
+36. Фрагменты. Часть 2
+render(){
+  return (
+      <React.Fragment>
+          <h2>Counter {this.state.counter}</h2>
+          <button onClick={this.addCounter}>+</button>
+          <button onClick={() => { this.setState({ counter: this.state.counter - 1 }) }}>-</button>
+      </React.Fragment>
+  )
+}
+в новых версиях реакта можно ставить пустые скобки <> ... </>
+-=-=-=-=-=-
+Можно создать свой React.Fragment
+
+import React from 'react'
+const Auxiliary = (props) => {
+    return props.children
+}
+export default Auxiliary
+--------------------------------------------------------
+37. Правильное изменение State
+// setState это асинхронный метод
+this.setState({
+    counter: this.state.counter + 1
+})
+// такой способ изменения может привести к ошибке,
+так как пока выполнится асинхронность state уже может изменится
+
+// Лучше его изменять через callback
+this.setState((prevState) => {
+    return {
+        counter: prevState.counter + 1
+    }
+})
+--------------------------------------------------------
+38. Введение в компоненты высшего порядка (High order components)
+Оборачивают другие компоненты и добавляют им функционал
+Добавляют функционал но не влияют на отображение
+
+Тут пример такой обёртки
+(Функция которая содержит другую функцию которая содержит новый функционал)
+Например так устроен Radium
+
+import React from 'react'
+const widthClass = (Component, className) => {
+    return (props) => {
+        return (
+            <div className={className}>
+                <Component {...props} /> // на случай если компонент принамает пропсы
+            </div>
+        )
+    }
+}
+export default widthClass
+
+Можно описать как обычный компонент из которого вернуть this.props.children
+Например: (Было выше)
+import React from 'react'
+
+export default class ErrorBoundary extends React.Component{
+
+    state = {
+        hasError: false
+    }
+    
+    componentDidCatch(error, info){
+        this.setState({hasError: true})
+    }
+
+    render(){
+         if(this.state.hasError){
+            return <h1 style={{color: 'red'}}>Something went wrong</h1>
+        }
+
+        return this.props.children
+    }
+}
+--------------------------------------------------------
+39. Валидация параметров с PropTypes
+npm i prop-types
+https://www.npmjs.com/package/prop-types
+Работает только в классовых компонентах
+Валидация типов
+Компонент . propTypes и задаю типы или создаю свою проверку (создать надо функцию)
+Car.propTypes = {
+    name: PropTypes.string,
+    year: PropTypes.number,
+    onChangeName: PropTypes.func,
+    onDelete: PropTypes.func
+}
+--------------------------------------------------------
+40. Референции
+Получит как параметр из JSX
+<input
+  ref = {inputRef => {this.inputRef = inputRef}}
+  //или
+  //ref = {this.inputRef}
+  ...
+/>
+
+componentDidMount(){ // Значит что уже отработал рендер
+  //nтеперь можно поработать с готовым деревом
+  this.inputRef.focus()
+}
+
+// Если надо выбрать конкретный компонет из множества, нужно передать ему индекс
+<Car
+...
+  index={index}
+...
+/>
+
+// Потом полсе отрисовки дерева обратится к конкретному елементу
+componentDidMount(){
+    if(this.props.index === 1){
+      this.inputRef.focus()
+    }
+}
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+С 16 реакта это делается так
+constructor(props){
+    super(props)
+    this.inputRef = React.createRef()
+}
+
+componentDidMount(){
+    if(this.props.index === 1){
+        this.inputRef.current.focus() // .current.
+    }
+}
+
+<input
+  ref = {this.inputRef} // создан в конструкторе
+  ...
+/>
+--------------------------------------------------------
+41. Context API
+Создаёт глобальное состояние которое можно шарить между объектами, компонентами
+
+Например есть новый копонент Counter2 который вложен в Counter, а отрисовка Counter проиходит в Арр
+Тогда надо
+
+В Counter импортирую Counter2 и вставляю его (Counter2) в разметку Counter
+
+В Арр компоненте в state завожу поле clicked: false
+class App extends Component{
+...
+      clicked: false,
+
+Завожу кнопку которая будет менять состояние
+Прокидываю состояние в Counter - <Counter clicked={this.state.clicked} />
+Получается clicked теперь доступно в пропсах Counterа
+return (
+...
+    <Counter clicked={this.state.clicked} />
+    <button onClick={() => this.setState({clicked: true})}>Change click</button>
+
+И уже в Counter ложу в пропсы Counter2 новое состояние clicked
+return (
+...
+      <Counter2 clicked = {this.props.clicked} />
+Только теперь могу работать с props.clicked в Counter2
+Но для этого пришлось задействовать компонент Counter который никак
+не должен воздействовать с этой переменной.
+Короче если большая вложенность компонентов то задолбёшся прокидывать пропсы
+Контекст решает эту проблему.
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
+export const ClickedContext = React.createContext(false)
+// false - задал значени по умолчанию как clicked: false
+
+Контекст разделяется на две состовлящие Provider и Concumer
+Provider - предоставляет доступ к контексту
+
+//беру имя ClickedContext и иду в рендер
+class App extends Component{
+  ...
+  <ClickedContext.Provider value={this.state.clicked}>
+    <Counter />
+  </ClickedContext.Provider>
+  ...
+}
+
+export default class Counter extends Component{
+  render(){
+    return ( ... <Counter2 /> ... )
+}
+
+Теперь избавился от прямой зависимости (не нужно прокидывать через пропсы, всё в контексте)
+
+Теперь надо импортировать в тот файл в котором собрался использовать
+в данном случае это Counter2 - import { ClickedContext } from '../App'
+
+Теперь в Counter2 вместо
+{props.clicked ? <p>Clicked</p> : null}
+Пишу колбек обёрнутый в <ClickedContext.Consumer>
+  <ClickedContext.Consumer>
+      {clicked => clicked ? <p>Clicked</p> : null}
+  </ClickedContext.Consumer>
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-7-react-router
+--------------------------------------------------------
+59. Установка и настройка
+yarn add react-router-dom - Самый популярный для работы с роутингом в реакт
+    "react-router-dom": "^5.2.0",
+Обернуть приложение в компонент который говорит реакту что используется роутинг
+В index.js
+import {BrowserRouter} from 'react-router-dom'
+const app = (
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+)
+ReactDOM.render(app, document.getElementById('root'));
+registerServiceWorker();
+--------------------------------------------------------
+60. Регистрация роута
+в Арр.js
+import { Route } from 'react-router-dom' - с пом этого компонента можно регистрировать разные роуты в прилжении
+{/* {localhost:3000} */}
+<Route path='/' render={ () => <h1>Home Page</h1> } /> - но так он будет на всех страницах
+Нужно добавить exact
+<Route path='/' exact render={ () => <h1>Home Page</h1> } /> - теперь он будет реагировать на изменения в адресной строке
+--------------------------------------------------------
+61. Роутинг и компоненты
+в Арр.js
+Есть 2 варианта
+Передать в колбек компонент
+  <Route path='/about' exact render={ () => <About /> } />
+Или так
+  <Route path='/about' component={About} />
+--------------------------------------------------------
+62. Навигация между страницами
+Пока отрабатывает перезагрузка страници
+Чтоб небыло перезагрузки страници нужно импортировать компонент NavLink
+import { Route, NavLink } from 'react-router-dom';
+
+Было
+        <nav className="nav">
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/cars">Cars</a></li>
+          </ul>
+        </nav>
+Стало
+        <nav className="nav">
+          <ul>
+            <li><NavLink to="/">Home</NavLink></li>
+            <li><NavLink to="/about">About</NavLink></li>
+            <li><NavLink to="/cars">Cars</NavLink></li>
+          </ul>
+        </nav>
+Но в DOM - обычные <li><a href="/">Home</a></li>
+И теперь нет перезагрузки страници
+--------------------------------------------------------
+63. Параметры ссылки
+NavLink текущей ссылке добавляет класс active
+добавить exact
+Чтоб делать активной эту ссылку если пути полностью совпадают
+<li><NavLink to="/" exact>Home</NavLink></li>
+
+Можно создать свой active
+<li><NavLink to="/" exact activeClassname={ 'wfm-active' }>Home</NavLink></li>
+
+Можно задать inline стили через activeStyle
+<NavLink
+  to="/"
+  exact
+  activeClassName={ 'wfm-active' }
+  activeStyle={{
+    color: "blue"
+  }}
+>Home</NavLink>
+
+Можно задавать путь не строкой а через объект
+<NavLink
+  to={{
+    pathname :'/cars',
+    search : '?a=1&b=2',
+    hash: 'wfm-hash'
+  }}>
+Cars</NavLink>
+В адресной строке получу http://localhost:3000/cars?a=1&b=2#wfm-hash
+--------------------------------------------------------
+64. Программная навигация
+Програмная навигация при клике на компонент машины
+В методе render компонента машины создаю кнопку для возврата на главную:
+<button onClick={this.goToHomePage}>Click</button>
+Реализую goToHomePage
+в пропсах машын (Cars), поскольку это класовая компонента, есть history и другое
+  goToHomePage = () => {
+    this.props.history.push('/') // можно сделать так и всё будет работать
+    this.props.history.push({
+      pathname: '/'
+    })
+  }
+В функциональную компоненту тож можно передать свойства роутинга
+корорые привязались к классовой компоненте - {...this.props}
+<Car
+  key={index}
+  name={car.name}
+  year={car.year}
+  {...this.props}
+/>
+Но это не хорошо.
+--------------------------------------------------------
+65. Роутинг и функциональные компоненты
+По нормальному роутинг в функциональных компонентах делается так
+import {withRouter} from 'react-router-dom'
+....
+export default withRouter(Car)
+теперь не надо передавать {...this.props}
+Теперь можно добавить навигацию (в JSX на нужный елемент)
+<div
+  className={'Car'}
+  onClick={() => props.history.push(`/cars/${props.name.toLowerCase()}`)}
+>
+--------------------------------------------------------
+66. Динамические роуты
+Создаю Компоненту CarDetail которую буду выводить в App.js После машин
+export default class CarDetail extends React.Component {
+    render(){
+        return(
+            <div style={{textAlign: 'center'}}>
+                <h1>{this.props.match.params.name}</h1>
+            </div>
+        )
+    }
+}
+А в Арр.js вызов будет выглядеть так
+<Route path='/cars/:name' component={Cars} />
+
+Так (с пом exact) каждый CarDetail будет выводится на новой странице
+<Route path='/cars' exact component={Cars} />
+<Route path='/cars/:name' exact component={CarDetail} />
+
+Switch
+import { Route, NavLink, Switch } from 'react-router-dom';
+
+<Switch>
+  <Route path='/' exact render={ () => <h1>Home Page</h1> } />
+  <Route path='/about' component={About} />
+  <Route path='/cars' exact component={Cars} />
+  <Route path='/cars/:name' exact component={CarDetail} />
+</Switch>
+
+Switch - вернёт разметку первого совпавшего c текущим url работает по аналогии с exact
+--------------------------------------------------------
+67. Редирект и ошибка 404
+  <Switch>
+    <Route path='/' exact render={ () => <h1>Home Page</h1> } />
+    <Route path='/about' component={About} />
+    <Route path='/cars' exact component={Cars} />
+    <Route path='/cars/:name' exact component={CarDetail} />
+
+    Если небыло совпадений с предидущими роутами то отработает последний
+    <Route render={() => <h1 style={{color: 'red', textAlign: 'center'}}>Page not found 404</h1>} />
+
+    Можно с пом редиректа - если введён несуществующий путь то перенаправит на страницу из редиректа
+    <Redirect to={'/'} />
+  </Switch>
+--------------------------------------------------------
+68. Защита роутов
+Можно создать
+state = {
+    isLoggedIn: false
+}
+И проверять состояние state в зависимости от чего рендерить или нет страницу например /about
+{this.state.isLoggedIn ? <Route path='/about' component={About} /> : null}
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-8-practice-router
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-9-practice-forms
+--------------------------------------------------------
+74. Страница авторизации
+
+export default class Auth extends Component{
+    loginHandler = () => { ... }
+
+    registerHandler = () => { ... }
+
+    submitHandler = event => {
+        event.preventDefault()
+    }
+
+    render(){
+        return(
+            <div className={classes.Auth}>
+                <div>
+                    <h1>Авторизация</h1>
+
+                    <form onSubmit={this.submitHandler} className={classes.AuthForm}>
+                        <input type="text" />
+                        <input type="text" />
+                        <Button type='success' onClick={this.loginHandler}>Войти</Button>
+                        <Button type='primary' onClick={this.registerHandler}>Зарегистрироваться</Button>
+                    </form>
+                </div>
+            </div>
+        )
+    }
+}
+--------------------------------------------------------
+75. Компонент текстового поля
+76. Валидация. Часть 1
+77. Валидация. Часть 2
+78. Валидация формы
+Установил https://www.npmjs.com/package/is_js для валидации email
+
+Создан компонент input
+        import React from 'react'
+        import classes from './Input.module.css'
+
+        function isInvalid({valid, touched, shouldValidate}){
+            return !valid && shouldValidate && touched
+        }
+
+        const Input = props => {
+            const inputType = props.type || 'text'
+            const cls = [classes.Input]
+            const htmlFor = `${inputType}-${Math.random()}`
+
+            if(isInvalid(props)){
+                cls.push(classes.invalid)
+            }
+
+            return(
+                <div className={cls.join(' ')}>
+                    <label htmlFor={htmlFor}>{props.label}</label>
+                    <input
+                        type={inputType}
+                        id={htmlFor}
+                        value={props.value}
+                        onChange={props.onChange}
+                    />
+                    {
+                        isInvalid(props)
+                        ? <span>{props.errorMessage || "Введите верное значение"}</span>
+                        : null
+                    }
+                </div>
+            )
+        }
+        export default Input
+
+Создан компонент Авторизации
+        import React, {Component} from 'react'
+        import classes from './Auth.module.css'
+        import Button from '../../components/UI/Button/Button'
+        import Input from '../../components/UI/Input/Input'
+        import is from 'is_js'
+
+        export default class Auth extends Component{
+            
+            state = {
+                isFormValid: false,
+                formControls: {
+                    email: {
+                        value: '',
+                        type: 'email',
+                        label: 'E-mail',
+                        errorMessage: 'Введите корректный e-mail',
+                        valid: false,
+                        touched: false,
+                        validation: {
+                            required: true,
+                            email: true
+                        }
+                    },
+                    password: {
+                        value: '',
+                        type: 'password',
+                        label: 'Пароль',
+                        errorMessage: 'Введите корректный пароль',
+                        valid: false,
+                        touched: false,
+                        validation: {
+                            required: true,
+                            minLendth: 6
+                        }
+                    }
+                }
+            }
+
+            loginHandler = () => { пока пусто }
+
+            registerHandler = () => { пока пусто }
+
+            submitHandler = event => { event.preventDefault() }
+
+            validateControl(value, validation){
+                if(!validation){
+                    return true
+                }
+
+                let isValid = true
+
+                if(validation.required){
+                    isValid = value.trim() !== '' && isValid
+                }
+                if(validation.email){
+                    isValid = is.email(value) && isValid
+                }
+                if(validation.minLendth){
+                    isValid = value.length >= validation.minLendth && isValid
+                }
+
+                return isValid
+            }
+
+            onChangeHandler = (event, controlName) => {
+
+                const formControls = { ...this.state.formControls }
+                const control = { ...formControls[controlName] }
+
+                control.value = event.target.value
+                control.touched = true
+                control.valid = this.validateControl(control.value, control.validation)
+
+                formControls[controlName] = control
+
+                let isFormValid = true
+
+                Object.keys(formControls).forEach(name=>{
+                    isFormValid = formControls[name].valid && isFormValid
+                })
+
+                this.setState({
+                    formControls, isFormValid
+                })
+            }
+
+            renderInputs(){
+                return Object.keys(this.state.formControls).map((controlName, index)=>{
+                    const control = this.state.formControls[controlName]
+                    return (
+                        <Input
+                            key={controlName + index}
+                            type={control.type}
+                            value={control.value}
+                            valid={control.valid}
+                            touched={control.touched}
+                            label={control.label}
+                            shouldValidate={!!control.validation}
+                            errorMessage={control.errorMessage}
+                            onChange={event=>this.onChangeHandler(event, controlName)}
+                        />
+                    )
+                })
+            }
+
+            render(){
+                return(
+                    <div className={classes.Auth}>
+                        <div>
+                            <h1>Авторизация</h1>
+
+                            <form onSubmit={this.submitHandler} className={classes.AuthForm}>
+                                {this.renderInputs()}
+                                <Button 
+                                    type='success'
+                                    onClick={this.loginHandler}
+                                    disabled={!this.state.isFormValid}
+                                    >Войти</Button>
+                                
+                                <Button
+                                    type='primary'
+                                    onClick={this.registerHandler}
+                                    disabled={!this.state.isFormValid}
+                                >Зарегистрироваться</Button>
+
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+        }
+--------------------------------------------------------
+79. Создание тестов
+80. Создание контролов
+81. Создание компонента Select
+82. Изменение контролов
+83. Добавление вопроса
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-10-practice-server
+
+https://firebase.google.com/
+Перейти к консоли
+Add project
+react-quiz-dpiqb
+Слева вклада Develop - Realtime Database
+  Найти кнопку - Create database
+  Security rules for Realtime Database
+    Start in locked mode (Не могу изменять данные)
+      All third party reads and writes will be denied
+    Start in test mode (Могу изменять данные)
+      Anyone with your database reference will be able to view, edit, and delete all data in your database for 30 days
+И получаю ссылку на базу данных - https://react-quiz-dpiqb.firebaseio.com/
+Теперь можно делать асинхронные запросы на сервер через fetch или например с пом библиотеки axios (yarn add axios)
+  Axios это один из самых популярных HTTP клиентов для браузеров и node.js, основанный на промисах.
+  В Axios есть поддержка запросов, получение ответов от сервера, их трансформация и автоматическая конвертация в JSON. Также в нем есть защита от XSRF.
+
+axios.get('https://react-quiz-dpiqb.firebaseio.com/quiz.json').then(response => {console.log(response)}) // просто проверочка роботоспособности (база не должна быть пустая)
+
+axios.post() - чтоб создать чтото в базе
+axios.post('куда передаю', 'что передаю (в данном случае массив который сформировал в state'))
+axios.post('https://react-quiz-dpiqb.firebaseio.com/quizes.json', this.state.quiz)
+
+-*-*-*-*-*-*-*-*-*-
+    createQuizHandler = event => {
+        event.preventDefault()
+        axios.post('https://react-quiz-dpiqb.firebaseio.com/quizes.json', this.state.quiz)
+            .then( response => { console.log(response) } )
+            .catch( error => { console.log(error) } )
+    }
+-*-*-*-*-*-*-*-*-*-
+Это вариант для теста
+    createQuizHandler = async (event) => {
+        event.preventDefault()
+        try{
+            const response = await axios.post('https://react-quiz-dpiqb.firebaseio.com/quizes.json', this.state.quiz)
+            //axios.post('https://react-quiz-dpiqb.firebaseio.com/quizes.json', this.state.quiz) - вернёт промис
+            //С помощю await мы распарсим промис и положим всё в response
+            console.log(response.data);
+        }catch(e){
+            console.log(e)
+        }
+    }
+-*-*-*-*-*-*-*-*-*-
+Рабочий вариант
+    createQuizHandler = async (event) => {
+        event.preventDefault()
+        try{
+            await axios.post('https://react-quiz-dpiqb.firebaseio.com/quizes.json', this.state.quiz)
+            this.setState({ // После того как добавил опрос просто обнулил state
+                quiz: [],
+                isFormValid: false,
+                rightAnswerId: 1,
+                formControls: createFormControls()
+            })
+        }catch(e){
+            console.log(e)
+        }
+    }
+--------------------------------------------------------
+86. Загрузка списка тестов
+В Файле QuizList
+
+    async componentDidMount(){
+        // На этом этапе уже зарендерился шаблон и можно работать с деревом
+        // Тут принимаю список тестов с сервера и пихаю их в state
+        try{
+            const response = await axios.get('https://react-quiz-dpiqb.firebaseio.com/quizes.json')
+            const quizes = []
+            Object.keys(response.data).forEach((key, index) => {
+                quizes.push({
+                    id: key,
+                    name: `Тест #${index + 1}`
+                })
+            })
+            this.setState({
+                quizes
+            })
+        }catch(e){
+            console.log(e);
+        }
+    }
+--------------------------------------------------------
+87. Компонент прогресса загрузки
+(тут подключил спинер загрузки)
+--------------------------------------------------------
+88. Загрузка теста
+Создал отдельный файл в котором создал базовый url
+  import axios from 'axios'
+  export default axios.create({
+      baseURL: 'https://react-quiz-dpiqb.firebaseio.com'
+  })
+
+  Теперь можно везде импортировать новый файлик
+  import axios from '../../axios/axios-quiz'
+
+  И обращатся 
+  try{
+    const response = await axios.get('/quizes.json')
+    ....
+Очистил state в Quiz от
+quiz: [
+    {
+        question: 'Какого цвета небо?',
+        rightAnswerId: 2,
+        id: 1,
+        answers:[
+            {text: "Черный", id: 1},
+            {text: "Синий", id: 2},
+            {text: "Красный", id: 3},
+            {text: "Зелёный", id: 4}
+        ]
+    },
+    {
+        question: 'В каком году основали город?',
+        rightAnswerId: 3,
+        id: 2,
+        answers:[
+            {text: "1700", id: 1},
+            {text: "1702", id: 2},
+            {text: "1703", id: 3},
+            {text: "1803", id: 4}
+        ]
+    }
+]
+Сделал quiz: []
+--------------------------------------------------------
+89. Авторизация
+В проекте включить способ авторизации по почте и паролю
+Тут https://firebase.google.com/docs/reference/rest/auth#section-create-email-password
+
+Интересует Sign up with email / password
+Скопировать -> https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=[API_KEY]
+В firebase найти [API_KEY] в настройках проекта
+
+В Auth.js
+import axios from 'axios'
+
+описать метод registerHandler и loginHandler
+
+    registerHandler = async () => {
+        const authData = {
+            email: this.state.formControls.email.value,
+            password: this.state.formControls.password.value,
+            returnSecureToken: true
+        }
+        try{
+            const apiKey = 'AIzaSyCnmFbhMG9Rsor4rcU1R7epz9ePw5QFzgM'
+            const response = await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, authData)
+            console.log(response.data);
+        }catch(e){
+            console.log(e);
+        }
+    }
+
+asedr@gmail.com
+7@2f!h$uiSFcnD
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-11-redux
+yarn add redux
+
+Просто в корне проекта создал файл redux.js
+В файле подключаем redux
+const redux = require('redux')
+
+Основные части redux
+  Reducer
+  Store
+  Actions
+
+//Например initialState - начальное состояние приложения
+const initialState = {
+    counter: 0
+}
+
+// -\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+// Reducer - js функция которая делает некоторые преобразования и всегда должна возвращать НОВЫЙ!!! state (не мутировать текущий!!!)
+// Функция, которая принимает предыдущее состояние и экшен (state и action) и возвращает следующее состояние (новую версию предыдущего).
+// state - первым параметром - объект который описывает состояние всего приложения
+// action - второй параметр - объект у которого есть одно обязательное поле - type
+const reducer = (state = initialState, action ) => {
+    if(action.type === "ADD"){
+        return{
+            counter: state.counter + 1
+        }
+    }
+    if(action.type === "SUB"){
+        return{
+            counter: state.counter - 1
+        }
+    }
+    if(action.type === "ADD_NUMBER"){
+        return{
+            counter: state.counter + action.value
+        }
+    }
+    return state
+}
+
+// -\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+// Store - то место где хранятся все данные (весь state, всего приложения хранится в одном объекте)
+const store = redux.createStore(reducer) // Сюда нужно передать Reducer
+// Теперь можно получать состояние store
+// console.log('1', store.getState())
+
+// -\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+// Actions - чтоб менять состояние store (объект у которого есть одно обязательное поле - type)
+const addCounter = {
+    type: 'ADD', // type нужен чтоб определить какое именно действие совершаю
+}
+
+store.subscribe(()=>{ // Можно выкинуть все console.log и подписатся на события
+// так при любом изменении store буду попадать в эту ф-цию и получать State
+// должно быть определено до всех dispatch
+    console.log('Subscribe', store.getState())
+})
+
+store.dispatch(addCounter) // dispatch - отправка
+// console.log('2', store.getState())
+
+store.dispatch({type: "SUB"})
+// console.log('3', store.getState())
+
+store.dispatch({type: "ADD_NUMBER", value: 10})
+// console.log('4', store.getState())
+
+--------------------------------------------------------
+yarn add redux
+yarn add react-redux
+
+92. React и Redux
+
+В Index.js
+import {createStore} from 'redux' // Для создания store
+import rootReducer from './redux/rootReducer'; // Созданный мною Reducer для / const store = createStore(rootReducer)
+import {Provider} from 'react-redux' // чтоб обернуть приложение и передать в него store
+
+-*-*-*-*-*-*-*-
+Файл rootReducer тут, задать начальное состояние
+
+const initialState = {
+  counter: 0
+}
+
+export default function rootReducer(state = initialState, action) {
+  return state
+}
+-*-*-*-*-*-*-*-
+
+import {Provider} from 'react-redux'
+Надо обернуть приложение в компонент Provider чтоб указать что работаю с redux и передать store
+
+import {createStore} from 'redux'
+import {Provider} from 'react-redux'
+import rootReducer from './redux/rootReducer'
+
+const store = createStore(rootReducer)
+
+const app = (
+  <Provider store={store}>
+    <App />
+  </Provider>
+)
+ReactDOM.render( app, document.getElementById('root') );
+reportWebVitals();
+
+-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/
+Error: Node Sass version 5.0.0 is incompatible with ^4.0.0
+yarn remove node-sass
+yarn add node-sass@4.14.1
+-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/
+
+--------------------------------------------------------
+93. Подключение компонента
+Подключаю App компонент к redux
+
+В нужном компоненте import {connect} from 'react-redux'
+connect - вернёт функцию в которую нужно обернуть компонент
+export default connect()(App)
+connect принимает два опциональных параметра
+
+-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/
+//тут state это не state компопента это state redux который передаю в reducer
+function mapStateToProps(state){
+  return{
+    counter: state.counter
+  }
+}
+//теперь в updateCounter я буду использовать state не как state а как props
+export default connect(mapStateToProps)(App)
+-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/-*/
+Теперь можно удалять локальный state компонента....
+
+--------------------------------------------------------
+94. Изменение State
+95. Передача параметров
+@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#
+App.js
+import React, {Component} from 'react'
+import classes from './App.module.scss'
+import {connect} from 'react-redux'
+
+class App extends Component {
+  render() {
+    return (
+      <div className={classes.App}>
+        <h1>Счетчик <strong>{this.props.counter}</strong></h1>
+        <div className={classes.Actions}>
+          <button onClick={this.props.onAdd}>Добавить 1</button>
+          <button onClick={this.props.onSub}>Вычесть 1</button>
+        </div>
+        <div className={classes.Actions}>
+          <button onClick={() => this.props.onAddNumber(15)}>Добавить 15</button>
+          <button onClick={() => this.props.onAddNumber(-15)}>Вычесть 15</button>
+        </div>
+      </div>
+    )
+  }
+}
+
+//тут state это не state компопента это state redux который передаю в reducer
+function mapStateToProps(state){
+  return{
+    counter: state.counter
+  }
+}
+//теперь в updateCounter я буду использовать state не как state а как props
+
+function mapDispatchToProps(dispatch){
+  return {
+    onAdd: () => dispatch({type: 'ADD'}),
+    onSub: () => dispatch({type: 'SUB'}),
+    onAddNumber: number => dispatch({type: 'ADD_NUMBER', payload: number})
+  }
+}
+
+// Порядок передачи параметров важен!
+// export default connect(null, mapDispatchToProps)(App) // если не хочу передавать mapStateToProps
+export default connect(mapStateToProps, mapDispatchToProps)(App)
+
+@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#
+RootReducer.js
+
+const initialState = {
+  counter: 0
+}
+export default function rootReducer(state = initialState, action) {
+  switch(action.type){
+    case 'ADD':
+      return {
+        counter: state.counter + 1
+      }
+    case 'SUB':
+      return {
+        counter: state.counter - 1
+      }
+    case 'ADD_NUMBER':
+      return {
+        counter: state.counter + action.payload
+      }
+    default:
+      return state
+  }
+}
+--------------------------------------------------------
+96. Объединение редюсеров
+import {combineReducers} from 'redux' 
+combineReducers - функция которая вернёт 1 reducer который будет состоять из всех перечисленных
+
+В rootReducer.js
+import {combineReducers} from 'redux' 
+
+import counter1 from './reducers/counter1'
+import counter2 from './reducers/counter2'
+
+export default combineReducers({
+  counter1, counter2
+})
+--------------------------------------------------------
+97. Как работает Middleware
+Middleware - функция которая добавляет функционал к чему-то
+Рассмотрим на примере логгера
+
+import {createStore, applyMiddleware} from 'redux'
+// Создам ф-цию которая при изменении store будет выводить его в консоль
+
+// function loggerMiddleware(store){
+//   return function(next){
+//     return function(action){
+//       const result = next(action)
+//       console.log('Middleware: ', store.getState());
+//       return result
+//     }
+//   }
+// }
+
+const loggerMiddleware = store => next => action => {
+  const result = next(action)
+  console.log('Middleware: ', store.getState());
+  return result
+}
+
+const store = createStore(rootReducer, applyMiddleware(loggerMiddleware))
+
+--------------------------------------------------------
+98. Что такое Action Creator
+Это функции которые выдают отдельный Action
+Предварительно создал константы в ./actionTypes
+import { ADD, ADD2, ADD_NUMBER, SUB } from "./actionTypes";
+
+export function add(){
+    return {
+        type: ADD
+    }
+}
+
+export function add2(number){
+    return {
+        type: ADD2,
+        payload: number
+    }
+}
+
+export function sub(){
+    return {
+        type: SUB
+    }
+}
+
+export function addNumber(number){
+    return {
+        type: ADD_NUMBER,
+        payload: number
+    }
+}
+
+Теперь в Reducer тож использую эти константы и теперь можно dispatch-ить эти функции
+Например так:
+function mapDispatchToProps(dispatch){
+  return {
+    onAdd: () => dispatch(add()),
+    onSub: () => dispatch(sub()),
+    onAddNumber: number => dispatch(addNumber(number))
+  }
+}
+
+А было так:
+// function mapDispatchToProps(dispatch){ // =- 5 -= **************************************************************************************
+//     return{
+//       onAdd: () => dispatch({type: ADD2}),
+//       onSub: () => dispatch({type: SUB2}),
+//       onAddNumber: number => dispatch({type: ADD_NUMBER2, payload: number}),
+//       onSubNumber: number => dispatch({type: SUB_NUMBER2, payload: number})
+//     }
+//   }
+--------------------------------------------------------
+99. Асинхронное изменение State
+Разберёмся как диспатчить асинхронные actions
+https://github.com/reduxjs/redux-thunk
+yarn add redux-thunk
+
+import {reduxThunk} from 'redux-thunk'
+
+redux-thunk тоже является Middleware
+Middleware - ПО промежуточного слоя
+Поэтому нужно добавить в applyMiddleware
+const store = createStore(rootReducer, applyMiddleware(loggerMiddleware, reduxThunk))
+
+Создаю новый Action из которого благодаря redux-thunk могу вернуть dispatch
+в который передам существующий action addNumber(number)
+export function asyncAdd(number){
+    return (dispatch) => {
+        setTimeout(() => {
+            dispatch(addNumber(number))
+        }, 3000)
+    }
+}
+
+function mapDispatchToProps(dispatch)
+  return{
+    onAdd: () => dispatch(onAdd()),
+    ....
+    onAsyncAdd: number => dispatch(onAsyncAdd(number))
+  }
+}
+
+Теперь НЕ пришлось создавать новый ActionType, НЕ вносил изменений в reducer
+поскольку благодаря middleware (Thunk) могу задиспатчить существующий action addNumber
+внутри нового action - asyncAdd
+
+--------------------------------------------------------
+100. Devtools
+https://github.com/zalmoxisus/redux-devtools-extension
+
+Импортировать - compose
+import {createStore, applyMiddleware, compose} from 'redux'
+
+const composeEnhancers =
+  typeof window === 'object' &&
+  window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?   
+    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+      // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
+    }) : compose;
+
+Теперь в composeEnhancers нужно обернуть весь Middleware
+const store = createStore(
+  rootReducer,
+  composeEnhancers(
+    applyMiddleware(loggerMiddleware, reduxThunk)
+  )
+)
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+sec-12-practice-redux
+--------------------------------------------------------
+101. Настройка приложения
+
+import {createStore} from 'redux'
+import {Provider} from 'react-redux'
+
+const store = createStore() // куда я положу rootReducer
+
+//Обернуть приложение в Provider и передать ему store
+const app = (
+    <Provider store={store}>
+        <BrowserRouter>
+            <App />
+        </BrowserRouter>
+    </Provider>
+)
+ReactDOM.render( app, document.getElementById('root') );
+
+// В корне создаю папки
+store
+ -actions
+ -reducers
+  -rootReducer.js
+
+// В rootReducer.js
+  import {combineReducers} from 'redux'
+  export default combineReducers({
+      
+  })
+
+// И передаю rootReducer в const store = createStore(rootReducer)
+
+// Настроить devtools
+import {createStore, compose, applyMiddleware} from 'redux'
+
+// Установить redux-thunk
+yarn add redux-thunk
+
+const store = createStore(
+    rootReducer,
+    composeEnhancers(
+        applyMiddleware(thunk)
+    )
+)
+--------------------------------------------------------
+102. Список тестов
+  1. Перенести initialState Создать Reducer и передать его в rootReducer
+  2. export default connect()(QuizList)
+  3. Описать функции
+    function mapStateToProps(state){
+        return{
+
+        }
+    }
+
+    function mapDispatchToProps(dispatch){
+        return{
+            
+        }
+    }
+......
+106. Авторизация
+107. Пункты меню
+
+asedr@gmail.com
+7@2f!h$uiSFcnD

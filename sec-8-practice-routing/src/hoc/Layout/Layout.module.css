@@ -1,0 +1,22 @@
+/*
+    В этом курсе версия инструмента create-react-app обновилась
+    и теперь делать yarn eject делать НЕ нужно
+
+    Для того, чтобы взаимодействовать с CSS модулями,
+    достаточно переименовать файл с постфиксом .module
+
+    Например: App.css -> App.module.css
+
+    Подробнее посмотри на 26 лекцию
+*/
+.Layout{
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.Layout main{
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
